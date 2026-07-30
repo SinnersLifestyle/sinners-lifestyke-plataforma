@@ -1,0 +1,147 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #0b0b0b;
+  font-family: Arial, sans-serif;
+}
+
+.home {
+  min-height: 100vh;
+  background: linear-gradient(
+    135deg,
+    #8b0000,
+    #1a0000,
+    #000000
+  );
+  color: white;
+}
+
+
+/* MENU */
+
+.navbar {
+  height: 80px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 60px;
+  background: rgba(0,0,0,.5);
+  border-bottom: 1px solid #d4af37;
+}
+
+
+.logo {
+  color: #d4af37;
+  font-size: 32px;
+  letter-spacing: 6px;
+  font-weight: bold;
+}
+
+
+.menu {
+  display: flex;
+  gap: 45px;
+}
+
+
+.menu span {
+  cursor: pointer;
+  transition: .3s;
+}
+
+
+.menu span:hover {
+  color: #d4af37;
+}
+
+
+/* PORTADA */
+
+.hero {
+  height: 420px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+}
+
+
+.hero h1 {
+  font-size:90px;
+  color:#d4af37;
+  letter-spacing:20px;
+  margin:0;
+}
+
+
+.hero p {
+  font-size:26px;
+}
+
+
+/* CLUB */
+
+.club {
+  text-align:center;
+  padding:50px;
+}
+
+
+.club h2 {
+  color:#d4af37;
+}
+
+
+/* GALERIA */
+
+.gallery {
+  text-align:center;
+  padding:40px;
+}
+
+
+.photos {
+  display:flex;
+  justify-content:center;
+  gap:25px;
+}
+
+
+.photo {
+  width:220px;
+  height:160px;
+  border:2px solid #d4af37;
+  border-radius:15px;
+  background:rgba(0,0,0,.4);
+}
+
+
+/* REDES */
+
+footer {
+  display:flex;
+  justify-content:flex-end;
+  padding:30px 60px;
+}
+
+
+.social {
+  display:flex;
+  gap:25px;
+}
+
+
+.social span {
+  cursor:pointer;
+  transition:.3s;
+}
+
+
+.social span:hover {
+  color:#d4af37;
+}
