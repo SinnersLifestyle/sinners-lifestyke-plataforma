@@ -1,0 +1,3 @@
+git add .
+git commit -m "Configurar deploy automatico GitHub Pages"
+git push
