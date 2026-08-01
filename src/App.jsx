@@ -1,76 +1,28 @@
-import './App.css'
-import logo from './assets/logo.png'
-
-function App() {
-
-  return (
-    <div className="home">
-
-      <nav className="navbar">
-
-        <div className="logo">
-          SINNERS
-        </div>
-
-        <div className="menu">
-          <span>Eventos</span>
-          <span>Productos</span>
-          <span>Reservaciones</span>
-        </div>
-
-      </nav>
+import Header from "./components/Header";
+import Hero from "./components/Hero";
+import Events from "./components/Events";
+import Gallery from "./components/Gallery";
+import Promotions from "./components/Promotions";
+import Footer from "./components/Footer";
+import "./App.css";
 
 
-      <section className="hero">
+function App(){
 
-        <h1>SINNERS</h1>
+return(
 
-        <p>
-          Lifestyle • Events • Experience
-        </p>
+<>
+<Header/>
+<Hero/>
+<Events/>
+<Gallery/>
+<Promotions/>
+<Footer/>
+</>
 
-      </section>
+)
 
-
-      <section className="club">
-
-        <h2>Sobre el Club</h2>
-
-      </section>
-
-
-      <section className="gallery">
-
-        <h2>Eventos Pasados</h2>
-
-        <div className="photos">
-
-          <div className="photo"></div>
-          <div className="photo"></div>
-          <div className="photo"></div>
-          <div className="photo"></div>
-
-        </div>
-
-      </section>
-
-
-      <footer>
-
-        <div className="social">
-
-          <span>Instagram</span>
-          <span>Facebook</span>
-          <span>TikTok</span>
-          <span>WhatsApp</span>
-
-        </div>
-
-      </footer>
-
-
-    </div>
-  )
 }
 
-export default App
+
+export default App;
