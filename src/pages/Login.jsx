@@ -12,69 +12,116 @@ function Login() {
 
 
   const [form, setForm] = useState({
+
     email: "",
     password: ""
+
   });
+
 
 
   const manejarCambio = (e) => {
 
     setForm({
+
       ...form,
+
       [e.target.name]: e.target.value
+
     });
 
   };
 
 
-  const iniciarSesion = (e) => {
+
+  const iniciarSesion = async (e) => {
+
 
     e.preventDefault();
 
 
-    const usuarioGuardado =
-      JSON.parse(localStorage.getItem("usuario"));
+    try {
 
 
-    if(!usuarioGuardado){
-
-      alert("Usuario no registrado");
-
-      navigate("/registro");
-
-      return;
-
-    }
+      const respuesta = await fetch(
+        "http://localhost:8080/usuarios"
+      );
 
 
-    if(
-      usuarioGuardado.email === form.email &&
-      usuarioGuardado.password === form.password
-    ){
-
-      login(usuarioGuardado);
+      const usuarios = await respuesta.json();
 
 
-      const ruta =
-        localStorage.getItem("rutaPendiente");
+
+      const usuarioEncontrado = usuarios.find(
+
+        (usuario) =>
+
+          usuario.email === form.email &&
+
+          usuario.password === form.password
+
+      );
 
 
-      if(ruta){
 
-        localStorage.removeItem("rutaPendiente");
+      if(!usuarioEncontrado){
 
-        navigate(ruta);
 
-      }else{
+        alert(
+          "Correo o contraseña incorrectos"
+        );
 
-        navigate("/");
+
+        return;
 
       }
 
 
-    }else{
 
-      alert("Correo o contraseña incorrectos");
+      login(usuarioEncontrado);
+
+
+
+      const ruta = localStorage.getItem(
+        "rutaPendiente"
+      );
+
+
+
+      if(ruta){
+
+
+        localStorage.removeItem(
+          "rutaPendiente"
+        );
+
+
+        navigate(ruta);
+
+
+      }else{
+
+
+        navigate("/");
+
+
+      }
+
+
+
+    }catch(error){
+
+
+      console.error(
+        "Error al iniciar sesión:",
+        error
+      );
+
+
+      alert(
+        "No se pudo conectar con SINNERS"
+      );
+
 
     }
 
@@ -82,58 +129,94 @@ function Login() {
   };
 
 
-return (
-
-<div className="login-container">
-
-<div className="login-card">
 
 
-<h1>SINNERS</h1>
+  return (
 
-<h2>Iniciar sesión</h2>
-
-
-<form onSubmit={iniciarSesion}>
+    <div className="login-container">
 
 
-<input
-name="email"
-type="email"
-placeholder="Correo electrónico"
-onChange={manejarCambio}
-/>
+      <div className="login-card">
 
 
-<input
-name="password"
-type="password"
-placeholder="Contraseña"
-onChange={manejarCambio}
-/>
+        <h1>SINNERS</h1>
 
 
-<button type="submit">
-Entrar
-</button>
+        <h2>Iniciar sesión</h2>
 
 
-</form>
+
+        <form onSubmit={iniciarSesion}>
 
 
-<p>
-¿No tienes cuenta?{" "}
-<Link to="/registro">
-Crear cuenta
-</Link>
-</p>
+          <input
+
+            name="email"
+
+            type="email"
+
+            placeholder="Correo electrónico"
+
+            value={form.email}
+
+            onChange={manejarCambio}
+
+            required
+
+          />
 
 
-</div>
 
-</div>
+          <input
 
-);
+            name="password"
+
+            type="password"
+
+            placeholder="Contraseña"
+
+            value={form.password}
+
+            onChange={manejarCambio}
+
+            required
+
+          />
+
+
+
+          <button type="submit">
+
+            Entrar
+
+          </button>
+
+
+
+        </form>
+
+
+
+        <p>
+
+          ¿No tienes cuenta?{" "}
+
+          <Link to="/registro">
+
+            Crear cuenta
+
+          </Link>
+
+        </p>
+
+
+
+      </div>
+
+
+    </div>
+
+  );
 
 }
 

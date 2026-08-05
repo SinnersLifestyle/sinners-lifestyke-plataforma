@@ -38,48 +38,62 @@ function Registro() {
 
 
 
-  const registrarUsuario = (e) => {
+  const registrarUsuario = async (e) => {
 
     e.preventDefault();
 
 
-    // Guarda la cuenta del usuario
-    registrar(form);
+    try {
 
 
-    // Crea sesión automáticamente después del registro
-    login(form);
+      // Guarda usuario en Spring Boot + MySQL
 
-
-    alert("Bienvenido a SINNERS");
+      const usuarioGuardado = await registrar(form);
 
 
 
-    // Recupera la pantalla que el usuario quería abrir
-    const rutaPendiente = localStorage.getItem("rutaPendiente");
+      // Inicia sesión automáticamente
+
+      login(usuarioGuardado);
 
 
 
-    if (rutaPendiente) {
-
-
-      // Limpia la ruta pendiente
-
-      localStorage.removeItem("rutaPendiente");
-
-
-      // Regresa al módulo solicitado
-
-      navigate(rutaPendiente);
+      alert("Bienvenido a SINNERS");
 
 
 
-    } else {
+      // Recupera pantalla pendiente
+
+      const rutaPendiente = localStorage.getItem("rutaPendiente");
 
 
-      // Si no había módulo pendiente, va al inicio
 
-      navigate("/");
+      if (rutaPendiente) {
+
+
+        localStorage.removeItem("rutaPendiente");
+
+
+        navigate(rutaPendiente);
+
+
+      } else {
+
+
+        navigate("/");
+
+
+      }
+
+
+
+    } catch (error) {
+
+
+      console.error("Error al registrar usuario:", error);
+
+
+      alert("No se pudo registrar el usuario");
 
 
     }
@@ -99,6 +113,7 @@ function Registro() {
 
         <h1>SINNERS</h1>
 
+
         <h2>Crear cuenta</h2>
 
 
@@ -113,6 +128,8 @@ function Registro() {
             type="text"
 
             placeholder="Nombre(s)"
+
+            value={form.nombre}
 
             onChange={manejarCambio}
 
@@ -130,6 +147,8 @@ function Registro() {
 
             placeholder="Apellidos"
 
+            value={form.apellidos}
+
             onChange={manejarCambio}
 
             required
@@ -145,6 +164,8 @@ function Registro() {
             type="email"
 
             placeholder="Correo electrónico"
+
+            value={form.email}
 
             onChange={manejarCambio}
 
@@ -162,6 +183,8 @@ function Registro() {
 
             placeholder="Teléfono"
 
+            value={form.telefono}
+
             onChange={manejarCambio}
 
             required
@@ -178,6 +201,8 @@ function Registro() {
 
             placeholder="Usuario"
 
+            value={form.usuario}
+
             onChange={manejarCambio}
 
             required
@@ -193,6 +218,8 @@ function Registro() {
             type="password"
 
             placeholder="Contraseña"
+
+            value={form.password}
 
             onChange={manejarCambio}
 
@@ -223,6 +250,7 @@ function Registro() {
             Inicia sesión
 
           </Link>
+
 
         </p>
 

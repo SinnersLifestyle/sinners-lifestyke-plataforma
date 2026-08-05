@@ -9,7 +9,7 @@ import Footer from "./components/Footer";
 
 import Login from "./pages/Login";
 import Registro from "./pages/Registro";
-import AccesoReservaciones from "./pages/AccesoReservaciones";
+import Reservaciones from "./pages/Reservaciones";
 
 import "./App.css";
 
@@ -42,15 +42,12 @@ function App() {
       <Routes>
 
 
-        {/* Página principal */}
-
         <Route
           path="/"
           element={<Home />}
         />
 
 
-        {/* Login */}
 
         <Route
           path="/login"
@@ -58,7 +55,6 @@ function App() {
         />
 
 
-        {/* Registro */}
 
         <Route
           path="/registro"
@@ -66,11 +62,10 @@ function App() {
         />
 
 
-        {/* Reservaciones */}
 
         <Route
-           path="/reservaciones"
-           element={<AccesoReservaciones />}
+          path="/reservaciones"
+          element={<Reservaciones />}
         />
 
 

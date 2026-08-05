@@ -7,41 +7,7 @@ function Header(){
   const navigate = useNavigate();
 
 
-  const validarModulo = (ruta) => {
-
-
-    // Guardamos el módulo que el usuario quería abrir
-    localStorage.setItem(
-      "rutaPendiente",
-      ruta
-    );
-
-
-    // Revisamos si existe una cuenta registrada
-    const usuarioRegistrado =
-      localStorage.getItem("usuario");
-
-
-
-    if(usuarioRegistrado){
-
-      // Si ya tiene cuenta, debe iniciar sesión
-      navigate("/login");
-
-
-    }else{
-
-      // Si no tiene cuenta, debe registrarse
-      navigate("/registro");
-
-    }
-
-
-  };
-
-
-
-  return(
+  return (
 
     <header>
 
@@ -50,19 +16,13 @@ function Header(){
         src={Logo}
         className="logo"
         alt="SINNERS"
+        onClick={() => navigate("/")}
+        style={{ cursor: "pointer" }}
       />
 
 
 
       <nav>
-
-
-        <button
-          onClick={() => navigate("/")}
-        >
-          Inicio
-        </button>
-
 
 
         <button>
@@ -71,23 +31,34 @@ function Header(){
 
 
 
-        <button
-          onClick={() => validarModulo("/reservaciones")}
-        >
-          Reservaciones
-        </button>
-
-
-
-        <button
-          onClick={() => validarModulo("/productos")}
-        >
+        <button>
           Productos
         </button>
 
 
-
       </nav>
+
+
+
+      <div className="header-actions">
+
+
+        <button
+          onClick={() => navigate("/login")}
+        >
+          Iniciar sesión
+        </button>
+
+
+
+        <button
+          onClick={() => navigate("/registro")}
+        >
+          Registro
+        </button>
+
+
+      </div>
 
 
     </header>
