@@ -28,16 +28,19 @@ export function AuthProvider({ children }) {
   // Registrar usuario en Spring Boot + MySQL
   const registrar = async (datosUsuario) => {
 
-    const respuesta = await fetch("http://localhost:8080/usuarios", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(datosUsuario)
-    });
+    const respuesta = await fetch(
+      "https://sinners-api.onrender.com/usuarios",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(datosUsuario)
+      }
+    );
 
     if (!respuesta.ok) {
-      throw new Error("No se pudo registrar el usuario");
+      throw new Error("No pudimos acompletar su registro, por favor intentelo mas tarde");
     }
 
     const usuarioGuardado = await respuesta.json();
@@ -57,7 +60,6 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   );
-
 }
 
 export function useAuth() {
