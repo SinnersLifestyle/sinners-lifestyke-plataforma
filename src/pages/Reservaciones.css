@@ -1,0 +1,427 @@
+/* =========================
+   PÁGINA RESERVACIONES
+========================= */
+
+.reservacion-page {
+  min-height: 100vh;
+  background: #000;
+  color: white;
+  padding: 40px 20px 70px;
+}
+
+.reservacion-container {
+  width: 100%;
+  max-width: 850px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.reservacion-logo {
+  width: 150px;
+  height: auto;
+  margin-bottom: 15px;
+}
+
+.reservacion-container h1 {
+  color: #d4af37;
+  font-size: 36px;
+  margin: 10px 0 35px;
+}
+
+
+/* =========================
+   EVENTO
+========================= */
+
+.evento-reservacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+
+  background: #111;
+  border: 1px solid #292929;
+  border-radius: 14px;
+
+  padding: 22px;
+
+  margin-bottom: 25px;
+
+  text-align: left;
+}
+
+.evento-imagen-container {
+  width: 190px;
+  min-width: 190px;
+}
+
+.evento-imagen {
+  display: block;
+
+  width: 190px;
+  height: 135px;
+
+  object-fit: contain;
+
+  border-radius: 10px;
+
+  background: #000;
+}
+
+.evento-datos {
+  flex: 1;
+}
+
+.dato-label {
+  display: block;
+
+  color: #d4af37;
+
+  font-size: 12px;
+  font-weight: bold;
+
+  letter-spacing: 2px;
+
+  margin-bottom: 5px;
+}
+
+.evento-datos h2 {
+  color: white;
+
+  font-size: 27px;
+
+  margin: 0 0 20px;
+
+  line-height: 1.2;
+}
+
+.evento-datos p {
+  font-size: 20px;
+
+  margin: 0;
+
+  color: #ddd;
+}
+
+
+/* =========================
+   CLIENTE
+========================= */
+
+.cliente-box {
+  background: #111;
+
+  border: 1px solid #292929;
+
+  border-radius: 14px;
+
+  padding: 25px;
+
+  margin-bottom: 25px;
+}
+
+.cliente-box h3,
+.reservacion-form h3 {
+  color: #d4af37;
+
+  font-size: 22px;
+
+  margin: 0 0 20px;
+}
+
+.cliente-datos {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 20px;
+
+  text-align: left;
+}
+
+.cliente-datos div {
+  background: #181818;
+
+  border-radius: 8px;
+
+  padding: 14px;
+}
+
+.cliente-datos span {
+  display: block;
+
+  color: #999;
+
+  font-size: 12px;
+
+  margin-bottom: 7px;
+
+  text-transform: uppercase;
+}
+
+.cliente-datos strong {
+  display: block;
+
+  color: white;
+
+  font-size: 14px;
+
+  word-break: break-word;
+}
+
+
+/* =========================
+   FORMULARIO
+========================= */
+
+.reservacion-form {
+  background: #111;
+
+  border: 1px solid #292929;
+
+  border-radius: 14px;
+
+  padding: 30px;
+}
+
+.selecciones {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap: 25px;
+
+  margin-top: 25px;
+}
+
+.campo-reserva {
+  text-align: left;
+}
+
+.campo-reserva label {
+  display: block;
+
+  color: #ddd;
+
+  font-size: 15px;
+
+  font-weight: bold;
+
+  margin-bottom: 9px;
+}
+
+.campo-reserva select {
+  width: 100%;
+
+  height: 52px;
+
+  padding: 0 15px;
+
+  background: #050505;
+
+  color: white;
+
+  border: 1px solid #555;
+
+  border-radius: 8px;
+
+  font-size: 16px;
+
+  cursor: pointer;
+
+  outline: none;
+}
+
+.campo-reserva select:focus {
+  border-color: #d4af37;
+
+  box-shadow:
+    0 0 0 2px
+    rgba(212,175,55,.15);
+}
+
+
+/* =========================
+   CAPACIDAD
+========================= */
+
+.capacidad-info {
+  margin-top: 20px;
+
+  padding: 12px;
+
+  background: #181818;
+
+  border-radius: 7px;
+
+  color: #bbb;
+
+  font-size: 14px;
+}
+
+.capacidad-info strong {
+  color: #d4af37;
+}
+
+
+/* =========================
+   AVISO
+========================= */
+
+.aviso-reservacion {
+  margin-top: 25px;
+
+  padding: 18px;
+
+  border-left: 3px solid #d4af37;
+
+  background: #181818;
+
+  text-align: left;
+
+  border-radius: 5px;
+}
+
+.aviso-reservacion strong {
+  color: #d4af37;
+}
+
+.aviso-reservacion p {
+  margin: 8px 0;
+
+  color: #ccc;
+
+  font-size: 14px;
+
+  line-height: 1.5;
+}
+
+
+/* =========================
+   MENSAJES
+========================= */
+
+.mensaje-reservacion {
+  margin-top: 20px;
+
+  padding: 15px;
+
+  border-radius: 7px;
+
+  font-size: 14px;
+
+  line-height: 1.5;
+}
+
+.mensaje-reservacion.exito {
+  background: #102510;
+
+  border: 1px solid #397339;
+
+  color: #b9e8b9;
+}
+
+.mensaje-reservacion.error {
+  background: #251010;
+
+  border: 1px solid #733939;
+
+  color: #ffb4b4;
+}
+
+
+/* =========================
+   BOTÓN CONFIRMAR
+========================= */
+
+.btn-confirmar {
+  display: block;
+
+  width: auto;
+
+  min-width: 240px;
+
+  margin: 28px auto 0;
+
+  padding: 13px 25px;
+
+  background: #d4af37;
+
+  color: #000;
+
+  border: none;
+
+  border-radius: 7px;
+
+  font-size: 16px;
+
+  font-weight: bold;
+
+  cursor: pointer;
+
+  transition: .3s;
+}
+
+.btn-confirmar:hover {
+  background: white;
+
+  transform: translateY(-1px);
+}
+
+
+/* =========================
+   CELULAR
+========================= */
+
+@media (max-width: 700px) {
+
+  .reservacion-page {
+    padding: 25px 15px 50px;
+  }
+
+  .reservacion-container h1 {
+    font-size: 29px;
+  }
+
+  .evento-reservacion {
+    flex-direction: column;
+
+    text-align: center;
+
+    gap: 18px;
+  }
+
+  .evento-imagen-container {
+    width: 160px;
+    min-width: 160px;
+  }
+
+  .evento-imagen {
+    width: 160px;
+    height: 115px;
+  }
+
+  .evento-datos h2 {
+    font-size: 23px;
+  }
+
+  .cliente-datos {
+    grid-template-columns: 1fr;
+  }
+
+  .selecciones {
+    grid-template-columns: 1fr;
+
+    gap: 18px;
+  }
+
+  .reservacion-form {
+    padding: 22px 18px;
+  }
+
+  .btn-confirmar {
+    width: 100%;
+  }
+}

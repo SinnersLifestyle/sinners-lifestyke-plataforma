@@ -33,10 +33,25 @@ function Login() {
       );
 
       if (!respuesta.ok) {
-        throw new Error("No se pudo consultar la API.");
+        throw new Error(
+          "No se pudo consultar la API."
+        );
       }
 
       const usuarios = await respuesta.json();
+
+      // =====================================================
+      // MOSTRAR DATOS QUE ENTREGA LA API
+      // =====================================================
+
+      console.log(
+        "USUARIOS API:",
+        usuarios
+      );
+
+      // =====================================================
+      // BUSCAR USUARIO
+      // =====================================================
 
       const usuarioEncontrado = usuarios.find(
         (usuario) =>
@@ -44,42 +59,109 @@ function Login() {
           usuario.password === form.password
       );
 
+      // =====================================================
+      // MOSTRAR USUARIO ENCONTRADO
+      // =====================================================
+
+      console.log(
+        "USUARIO ENCONTRADO:",
+        usuarioEncontrado
+      );
+
       if (!usuarioEncontrado) {
-        alert("Teléfono o contraseña incorrectos.");
+        alert(
+          "Teléfono o contraseña incorrectos."
+        );
+
         return;
       }
 
-      login(usuarioEncontrado);
+      // =====================================================
+      // DATOS QUE SE GUARDARÁN EN LA SESIÓN
+      // =====================================================
 
-      const ruta = localStorage.getItem("rutaPendiente");
+      const usuarioSesion = {
+        id: usuarioEncontrado.id,
+        nombre: usuarioEncontrado.nombre,
+        apellidos: usuarioEncontrado.apellidos,
+        email: usuarioEncontrado.email,
+        telefono: usuarioEncontrado.telefono,
+        usuario: usuarioEncontrado.usuario
+      };
+
+      // =====================================================
+      // MOSTRAR DATOS DE SESIÓN
+      // =====================================================
+
+      console.log(
+        "USUARIO GUARDADO EN SESIÓN:",
+        usuarioSesion
+      );
+
+      // =====================================================
+      // GUARDAR SESIÓN
+      // =====================================================
+
+      login(usuarioSesion);
+
+      // =====================================================
+      // REGRESAR A LA RUTA PENDIENTE
+      // =====================================================
+
+      const ruta =
+        localStorage.getItem(
+          "rutaPendiente"
+        );
 
       if (ruta) {
-        localStorage.removeItem("rutaPendiente");
+
+        localStorage.removeItem(
+          "rutaPendiente"
+        );
+
         navigate(ruta);
+
       } else {
+
         navigate("/");
+
       }
 
     } catch (error) {
-      console.error("Error al iniciar sesión:", error);
 
-      alert("No se pudo conectar con SINNERS.");
+      console.error(
+        "Error al iniciar sesión:",
+        error
+      );
+
+      alert(
+        "No se pudo conectar con SINNERS."
+      );
 
     } finally {
+
       setCargando(false);
+
     }
   };
 
   return (
-    <div className="login-container">
+
+    <div className="login-page">
 
       <div className="login-card">
 
-        <h1>SINNERS</h1>
+        <h1>
+          SINNERS
+        </h1>
 
-        <h2>Iniciar sesión</h2>
+        <h2>
+          Iniciar sesión
+        </h2>
 
-        <form onSubmit={iniciarSesion}>
+        <form
+          onSubmit={iniciarSesion}
+        >
 
           <input
             name="telefono"
@@ -104,7 +186,9 @@ function Login() {
             type="submit"
             disabled={cargando}
           >
-            {cargando ? "Entrando..." : "Entrar"}
+            {cargando
+              ? "Entrando..."
+              : "Entrar"}
           </button>
 
         </form>
@@ -120,6 +204,7 @@ function Login() {
       </div>
 
     </div>
+
   );
 }
 
