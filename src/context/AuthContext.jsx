@@ -2,7 +2,7 @@ import { createContext, useContext, useState } from "react";
 
 const AuthContext = createContext();
 
-const API_URL = "http://localhost:8080";
+const API_URL = "https://sinners-api.onrender.com";
 
 export function AuthProvider({ children }) {
   const [usuario, setUsuario] = useState(() => {
