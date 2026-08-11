@@ -2,8 +2,9 @@ import { createContext, useContext, useState } from "react";
 
 const AuthContext = createContext();
 
-export function AuthProvider({ children }) {
+const API_URL = "http://localhost:8080";
 
+export function AuthProvider({ children }) {
   const [usuario, setUsuario] = useState(() => {
     const sesionActiva = sessionStorage.getItem("sesion");
     return sesionActiva ? JSON.parse(sesionActiva) : null;
@@ -25,11 +26,10 @@ export function AuthProvider({ children }) {
     setUsuario(null);
   };
 
-  // Registrar usuario en Spring Boot + MySQL
-  const registrar = async (datosUsuario) => {
-
+  // Solicitar código OTP
+  const solicitarOtp = async (datosUsuario) => {
     const respuesta = await fetch(
-      "https://sinners-api.onrender.com/usuarios",
+      `${API_URL}/usuarios/solicitar-otp`,
       {
         method: "POST",
         headers: {
@@ -40,7 +40,31 @@ export function AuthProvider({ children }) {
     );
 
     if (!respuesta.ok) {
-      throw new Error("No pudimos acompletar su registro, por favor intentelo mas tarde");
+      throw new Error(
+        "No pudimos completar la solicitud de verificación."
+      );
+    }
+
+    const codigo = await respuesta.text();
+
+    return codigo;
+  };
+
+  // Verificar código OTP y crear usuario
+  const verificarOtp = async (telefono, codigo) => {
+    const respuesta = await fetch(
+      `${API_URL}/usuarios/verificar-otp?telefono=${encodeURIComponent(
+        telefono
+      )}&codigo=${encodeURIComponent(codigo)}`,
+      {
+        method: "POST"
+      }
+    );
+
+    if (!respuesta.ok) {
+      throw new Error(
+        "El código es incorrecto o ya expiró."
+      );
     }
 
     const usuarioGuardado = await respuesta.json();
@@ -54,7 +78,8 @@ export function AuthProvider({ children }) {
         usuario,
         login,
         logout,
-        registrar
+        solicitarOtp,
+        verificarOtp
       }}
     >
       {children}

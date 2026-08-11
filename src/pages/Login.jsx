@@ -3,222 +3,124 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./Login.css";
 
-
 function Login() {
-
   const navigate = useNavigate();
 
   const { login } = useAuth();
 
-
   const [form, setForm] = useState({
-
-    email: "",
+    telefono: "",
     password: ""
-
   });
 
-
+  const [cargando, setCargando] = useState(false);
 
   const manejarCambio = (e) => {
-
     setForm({
-
       ...form,
-
       [e.target.name]: e.target.value
-
     });
-
   };
 
-
-
   const iniciarSesion = async (e) => {
-
-
     e.preventDefault();
 
-
     try {
-
+      setCargando(true);
 
       const respuesta = await fetch(
         "http://localhost:8080/usuarios"
       );
 
+      if (!respuesta.ok) {
+        throw new Error("No se pudo consultar la API.");
+      }
 
       const usuarios = await respuesta.json();
 
-
-
       const usuarioEncontrado = usuarios.find(
-
         (usuario) =>
-
-          usuario.email === form.email &&
-
+          usuario.telefono === form.telefono &&
           usuario.password === form.password
-
       );
 
-
-
-      if(!usuarioEncontrado){
-
-
-        alert(
-          "Correo o contraseña incorrectos"
-        );
-
-
+      if (!usuarioEncontrado) {
+        alert("Teléfono o contraseña incorrectos.");
         return;
-
       }
-
-
 
       login(usuarioEncontrado);
 
+      const ruta = localStorage.getItem("rutaPendiente");
 
-
-      const ruta = localStorage.getItem(
-        "rutaPendiente"
-      );
-
-
-
-      if(ruta){
-
-
-        localStorage.removeItem(
-          "rutaPendiente"
-        );
-
-
+      if (ruta) {
+        localStorage.removeItem("rutaPendiente");
         navigate(ruta);
-
-
-      }else{
-
-
+      } else {
         navigate("/");
-
-
       }
 
+    } catch (error) {
+      console.error("Error al iniciar sesión:", error);
 
+      alert("No se pudo conectar con SINNERS.");
 
-    }catch(error){
-
-
-      console.error(
-        "Error al iniciar sesión:",
-        error
-      );
-
-
-      alert(
-        "No se pudo conectar con SINNERS"
-      );
-
-
+    } finally {
+      setCargando(false);
     }
-
-
   };
 
-
-
-
   return (
-
     <div className="login-container">
-
 
       <div className="login-card">
 
-
         <h1>SINNERS</h1>
-
 
         <h2>Iniciar sesión</h2>
 
-
-
         <form onSubmit={iniciarSesion}>
 
-
           <input
-
-            name="email"
-
-            type="email"
-
-            placeholder="Correo electrónico"
-
-            value={form.email}
-
+            name="telefono"
+            type="tel"
+            placeholder="Número de celular"
+            value={form.telefono}
             onChange={manejarCambio}
-
+            maxLength="10"
             required
-
           />
 
-
-
           <input
-
             name="password"
-
             type="password"
-
             placeholder="Contraseña"
-
             value={form.password}
-
             onChange={manejarCambio}
-
             required
-
           />
 
-
-
-          <button type="submit">
-
-            Entrar
-
+          <button
+            type="submit"
+            disabled={cargando}
+          >
+            {cargando ? "Entrando..." : "Entrar"}
           </button>
-
-
 
         </form>
 
-
-
         <p>
-
           ¿No tienes cuenta?{" "}
 
           <Link to="/registro">
-
             Crear cuenta
-
           </Link>
-
         </p>
-
-
 
       </div>
 
-
     </div>
-
   );
-
 }
-
 
 export default Login;
