@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./Login.css";
 
+const API_URL = "https://sinners-api.onrender.com";
+
 function Login() {
   const navigate = useNavigate();
 
@@ -29,7 +31,7 @@ function Login() {
       setCargando(true);
 
       const respuesta = await fetch(
-        "http://localhost:8080/usuarios"
+        `${API_URL}/usuarios`
       );
 
       if (!respuesta.ok) {
@@ -40,28 +42,16 @@ function Login() {
 
       const usuarios = await respuesta.json();
 
-      // =====================================================
-      // MOSTRAR DATOS QUE ENTREGA LA API
-      // =====================================================
-
       console.log(
         "USUARIOS API:",
         usuarios
       );
-
-      // =====================================================
-      // BUSCAR USUARIO
-      // =====================================================
 
       const usuarioEncontrado = usuarios.find(
         (usuario) =>
           usuario.telefono === form.telefono &&
           usuario.password === form.password
       );
-
-      // =====================================================
-      // MOSTRAR USUARIO ENCONTRADO
-      // =====================================================
 
       console.log(
         "USUARIO ENCONTRADO:",
@@ -76,10 +66,6 @@ function Login() {
         return;
       }
 
-      // =====================================================
-      // DATOS QUE SE GUARDARÁN EN LA SESIÓN
-      // =====================================================
-
       const usuarioSesion = {
         id: usuarioEncontrado.id,
         nombre: usuarioEncontrado.nombre,
@@ -89,24 +75,12 @@ function Login() {
         usuario: usuarioEncontrado.usuario
       };
 
-      // =====================================================
-      // MOSTRAR DATOS DE SESIÓN
-      // =====================================================
-
       console.log(
         "USUARIO GUARDADO EN SESIÓN:",
         usuarioSesion
       );
 
-      // =====================================================
-      // GUARDAR SESIÓN
-      // =====================================================
-
       login(usuarioSesion);
-
-      // =====================================================
-      // REGRESAR A LA RUTA PENDIENTE
-      // =====================================================
 
       const ruta =
         localStorage.getItem(
@@ -114,21 +88,16 @@ function Login() {
         );
 
       if (ruta) {
-
         localStorage.removeItem(
           "rutaPendiente"
         );
 
         navigate(ruta);
-
       } else {
-
         navigate("/");
-
       }
 
     } catch (error) {
-
       console.error(
         "Error al iniciar sesión:",
         error
@@ -139,14 +108,11 @@ function Login() {
       );
 
     } finally {
-
       setCargando(false);
-
     }
   };
 
   return (
-
     <div className="login-page">
 
       <div className="login-card">
@@ -204,7 +170,6 @@ function Login() {
       </div>
 
     </div>
-
   );
 }
 
