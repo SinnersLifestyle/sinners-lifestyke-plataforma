@@ -7,7 +7,6 @@ import "./Reservaciones.css";
 const API_URL = "https://sinners-api.onrender.com";
 
 function Reservaciones() {
-
   const { usuario } = useAuth();
   const location = useLocation();
 
@@ -47,11 +46,17 @@ function Reservaciones() {
     useState(false);
 
   // =====================================================
+  // RESERVACIÓN CREADA
+  // =====================================================
+
+  const [reservacionCreada, setReservacionCreada] =
+    useState(null);
+
+  // =====================================================
   // CAMBIO DE CAMPOS
   // =====================================================
 
   const manejarCambio = (e) => {
-
     setForm({
       ...form,
       [e.target.name]: e.target.value
@@ -74,7 +79,6 @@ function Reservaciones() {
   // =====================================================
 
   const enviarReservacion = async (e) => {
-
     console.log(
       "CONFIRMAR RESERVACIÓN - BOTÓN PRESIONADO"
     );
@@ -86,7 +90,6 @@ function Reservaciones() {
     // ===================================================
 
     if (!usuario) {
-
       setMensaje(
         "Debes iniciar sesión para realizar una reservación."
       );
@@ -102,7 +105,6 @@ function Reservaciones() {
     // ===================================================
 
     if (!mesas || !personas) {
-
       setMensaje(
         "Selecciona el número de mesas y personas."
       );
@@ -115,7 +117,6 @@ function Reservaciones() {
     // ===================================================
 
     if (personas > mesas * 3) {
-
       const mesasNecesarias =
         Math.ceil(personas / 3);
 
@@ -131,7 +132,6 @@ function Reservaciones() {
     // ===================================================
 
     if (mesas > 3) {
-
       setMensaje(
         "Para solicitar más de 3 mesas, comunícate directamente con SINNERS al 55 7111 0679."
       );
@@ -144,7 +144,6 @@ function Reservaciones() {
     // ===================================================
 
     if (!eventoSeleccionado) {
-
       setMensaje(
         "No se encontró el evento seleccionado."
       );
@@ -160,7 +159,6 @@ function Reservaciones() {
       convertirFecha(fechaSeleccionada);
 
     if (!fechaConvertida) {
-
       setMensaje(
         "No se pudo determinar la fecha del evento."
       );
@@ -184,7 +182,6 @@ function Reservaciones() {
     );
 
     try {
-
       // =================================================
       // ENVIAR A API
       // =================================================
@@ -199,15 +196,10 @@ function Reservaciones() {
           },
 
           body: JSON.stringify({
-
             evento: eventoSeleccionado,
-
             fechaReserva: fechaConvertida,
-
             numeroMesas: mesas,
-
             personas: personas
-
           })
         }
       );
@@ -217,45 +209,49 @@ function Reservaciones() {
       // =================================================
 
       if (!respuesta.ok) {
-
         let mensajeError =
           "No se pudo realizar la reservación.";
 
         try {
-
           const texto =
             await respuesta.text();
 
           if (texto) {
             mensajeError = texto;
           }
-
         } catch (error) {
-
           console.error(
             "Error leyendo respuesta:",
             error
           );
-
         }
 
         throw new Error(mensajeError);
       }
 
       // =================================================
-      // RESERVACIÓN REGISTRADA
+      // LEER RESERVACIÓN CREADA
       // =================================================
 
+      const reservacion =
+        await respuesta.json();
+
       console.log(
-        "RESERVACIÓN REGISTRADA CORRECTAMENTE"
+        "RESERVACIÓN REGISTRADA CORRECTAMENTE:",
+        reservacion
       );
+
+      // =================================================
+      // GUARDAR RESERVACIÓN EN ESTADO
+      // =================================================
+
+      setReservacionCreada(reservacion);
 
       setMensaje("");
 
       setMostrarResumen(true);
 
     } catch (error) {
-
       console.error(
         "Error al realizar reservación:",
         error
@@ -273,7 +269,6 @@ function Reservaciones() {
   // =====================================================
 
   const cancelarResumen = () => {
-
     setMostrarResumen(false);
 
     setMensaje(
@@ -286,7 +281,6 @@ function Reservaciones() {
   // =====================================================
 
   const confirmarWhatsApp = () => {
-
     const nombreCliente =
       `${usuario?.nombre || ""} ${usuario?.apellidos || ""}`.trim();
 
@@ -302,31 +296,54 @@ function Reservaciones() {
     const personas =
       Number(form.personas);
 
-    const mensajeWhatsApp =
-      `Hola SINNERS, quiero confirmar mi reservación.%0A%0A` +
-      `*Cliente:* ${nombreCliente}%0A` +
-      `*Teléfono:* ${telefono}%0A` +
-      `*Email:* ${email}%0A%0A` +
-      `*Evento:* ${eventoSeleccionado}%0A` +
-      `*Fecha:* ${fechaSeleccionada}%0A` +
-      `*Mesas:* ${mesas}%0A` +
-      `*Personas:* ${personas}%0A%0A` +
+    // =================================================
+    // NÚMERO DE RESERVACIÓN
+    // =================================================
+
+    const numeroReservacion =
+      reservacionCreada?.id || "Pendiente";
+
+    // =================================================
+    // MENSAJE
+    // =================================================
+
+    const textoWhatsApp =
+      `Hola SINNERS, quiero confirmar mi reservación.\n\n` +
+      `*Reservación:* #${numeroReservacion}\n` +
+      `*Cliente:* ${nombreCliente}\n` +
+      `*Teléfono:* ${telefono}\n` +
+      `*Email:* ${email}\n\n` +
+      `*Evento:* ${eventoSeleccionado}\n` +
+      `*Fecha:* ${fechaSeleccionada}\n` +
+      `*Mesas:* ${mesas}\n` +
+      `*Personas:* ${personas}\n\n` +
       `Mi reservación ya fue registrada y deseo confirmar el envío de la solicitud.`;
 
     const numeroSinners =
       "525571110679";
 
-    const urlWhatsApp =
-      `https://wa.me/${numeroSinners}?text=${mensajeWhatsApp}`;
+    // =================================================
+    // URL OFICIAL PARA ABRIR WHATSAPP
+    // =================================================
 
-    window.open(
-      urlWhatsApp,
-      "_blank"
+    const urlWhatsApp =
+      `https://wa.me/${numeroSinners}?text=${encodeURIComponent(
+        textoWhatsApp
+      )}`;
+
+    console.log(
+      "ABRIENDO WHATSAPP:",
+      urlWhatsApp
     );
+
+    // =================================================
+    // ABRIR WHATSAPP
+    // =================================================
+
+    window.location.href = urlWhatsApp;
   };
 
   return (
-
     <div className="reservacion-page">
 
       <div className="reservacion-container">
@@ -341,7 +358,6 @@ function Reservaciones() {
           Reservación SINNERS
         </h1>
 
-
         {/* =================================================
             EVENTO
         ================================================= */}
@@ -349,7 +365,6 @@ function Reservaciones() {
         <div className="evento-reservacion">
 
           {imagenEvento && (
-
             <div className="evento-imagen-container">
 
               <img
@@ -359,7 +374,6 @@ function Reservaciones() {
               />
 
             </div>
-
           )}
 
           <div className="evento-datos">
@@ -383,7 +397,6 @@ function Reservaciones() {
           </div>
 
         </div>
-
 
         {/* =================================================
             DATOS DEL CLIENTE
@@ -438,7 +451,6 @@ function Reservaciones() {
 
         </div>
 
-
         {/* =================================================
             FORMULARIO
         ================================================= */}
@@ -454,9 +466,7 @@ function Reservaciones() {
               Datos de la reservación
             </h3>
 
-
             <div className="selecciones">
-
 
               {/* MESAS */}
 
@@ -493,7 +503,6 @@ function Reservaciones() {
                 </select>
 
               </div>
-
 
               {/* PERSONAS */}
 
@@ -541,7 +550,6 @@ function Reservaciones() {
 
             </div>
 
-
             {/* =================================================
                 AVISO DE CAPACIDAD
             ================================================= */}
@@ -569,7 +577,6 @@ function Reservaciones() {
 
             )}
 
-
             {/* =================================================
                 MENSAJE
             ================================================= */}
@@ -585,7 +592,6 @@ function Reservaciones() {
               </div>
 
             )}
-
 
             {/* =================================================
                 AVISO
@@ -629,7 +635,6 @@ function Reservaciones() {
 
             </div>
 
-
             {/* =================================================
                 BOTÓN
             ================================================= */}
@@ -638,15 +643,12 @@ function Reservaciones() {
               type="submit"
               className="btn-confirmar"
             >
-
               Confirmar reservación
-
             </button>
 
           </form>
 
         )}
-
 
         {/* =====================================================
             RESUMEN DE RESERVACIÓN
@@ -665,8 +667,29 @@ function Reservaciones() {
               de continuar.
             </p>
 
-
             <div className="resumen-datos">
+
+              {/* NÚMERO DE RESERVACIÓN */}
+
+              <div>
+                <span>
+                  Número de reservación
+                </span>
+
+                <strong>
+                  #{reservacionCreada?.id || "Pendiente"}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Estado
+                </span>
+
+                <strong>
+                  {reservacionCreada?.estado || "REGISTRADA"}
+                </strong>
+              </div>
 
               <div>
                 <span>
@@ -679,7 +702,6 @@ function Reservaciones() {
                 </strong>
               </div>
 
-
               <div>
                 <span>
                   Teléfono
@@ -689,7 +711,6 @@ function Reservaciones() {
                   {usuario?.telefono}
                 </strong>
               </div>
-
 
               <div>
                 <span>
@@ -701,7 +722,6 @@ function Reservaciones() {
                 </strong>
               </div>
 
-
               <div>
                 <span>
                   Fecha
@@ -712,7 +732,6 @@ function Reservaciones() {
                 </strong>
               </div>
 
-
               <div>
                 <span>
                   Mesas
@@ -722,7 +741,6 @@ function Reservaciones() {
                   {form.numeroMesas}
                 </strong>
               </div>
-
 
               <div>
                 <span>
@@ -736,7 +754,6 @@ function Reservaciones() {
 
             </div>
 
-
             <div className="resumen-aviso">
 
               <strong>
@@ -744,8 +761,8 @@ function Reservaciones() {
               </strong>
 
               <p>
-                Tu reservación ya fue registrada en
-                el sistema de SINNERS.
+                Tu reservación ya fue registrada
+                en el sistema de SINNERS.
               </p>
 
               <p>
@@ -756,32 +773,34 @@ function Reservaciones() {
 
             </div>
 
-
             {/* =================================================
                 BOTONES
             ================================================= */}
 
-            <div className="resumen-botones">
+            <div
+              className="resumen-botones"
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "18px",
+                marginTop: "25px"
+              }}
+            >
 
               <button
                 type="button"
                 className="btn-whatsapp"
                 onClick={confirmarWhatsApp}
               >
-
                 Confirmar y enviar por WhatsApp
-
               </button>
-
 
               <button
                 type="button"
                 className="btn-cancelar-resumen"
                 onClick={cancelarResumen}
               >
-
                 Cancelar
-
               </button>
 
             </div>
@@ -795,7 +814,6 @@ function Reservaciones() {
     </div>
   );
 }
-
 
 /* =========================================================
    CONVERTIR FECHA
