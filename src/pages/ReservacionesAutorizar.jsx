@@ -5,29 +5,25 @@ import { useAuth } from "../context/AuthContext";
 const API_URL = "https://sinners-api.onrender.com";
 
 function ReservacionesAutorizar() {
-
-  const { usuario } = useAuth();
+  const { usuario, logout } = useAuth();
   const navigate = useNavigate();
 
   const [reservaciones, setReservaciones] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [mensaje, setMensaje] = useState("");
+  const [procesando, setProcesando] = useState(null);
 
   // =====================================================
   // VALIDAR ACCESO
   // =====================================================
 
   useEffect(() => {
-
     if (!usuario?.esAdministrador) {
-
       navigate("/");
-
       return;
     }
 
     cargarReservaciones();
-
   }, [usuario, navigate]);
 
   // =====================================================
@@ -35,9 +31,7 @@ function ReservacionesAutorizar() {
   // =====================================================
 
   const cargarReservaciones = async () => {
-
     try {
-
       setCargando(true);
       setMensaje("");
 
@@ -46,34 +40,37 @@ function ReservacionesAutorizar() {
       );
 
       if (!respuesta.ok) {
-
         throw new Error(
           "No se pudieron obtener las reservaciones."
         );
-
       }
 
       const datos = await respuesta.json();
 
       console.log(
-        "RESERVACIONES:",
+        "RESERVACIONES API:",
         datos
       );
 
       // =================================================
-      // MOSTRAR SOLAMENTE PENDIENTES
+      // SOLO MOSTRAR RESERVACIONES QUE REQUIEREN
+      // ACCIÓN ADMINISTRATIVA
+      //
+      // REGISTRADA -> ACEPTAR / RECHAZAR
+      // ACEPTADA   -> LLEGÓ / NO_SHOW
+      //
+      // LLEGO, NO_SHOW Y CANCELADA NO SE MUESTRAN
       // =================================================
 
       const pendientes = datos.filter(
         (reservacion) =>
           reservacion.estado === "REGISTRADA" ||
-          reservacion.estado === "SOLICITUD_ENVIADA"
+          reservacion.estado === "ACEPTADA"
       );
 
       setReservaciones(pendientes);
 
     } catch (error) {
-
       console.error(
         "Error obteniendo reservaciones:",
         error
@@ -81,13 +78,11 @@ function ReservacionesAutorizar() {
 
       setMensaje(
         error.message ||
-        "No se pudieron cargar las reservaciones."
+          "No se pudieron cargar las reservaciones."
       );
 
     } finally {
-
       setCargando(false);
-
     }
   };
 
@@ -96,7 +91,6 @@ function ReservacionesAutorizar() {
   // =====================================================
 
   const formatearFecha = (fecha) => {
-
     if (!fecha) {
       return "Sin fecha";
     }
@@ -111,16 +105,230 @@ function ReservacionesAutorizar() {
   };
 
   // =====================================================
+  // AGRUPAR RESERVACIONES POR EVENTO + FECHA
+  // =====================================================
+
+  const grupos = reservaciones.reduce(
+    (acumulador, reservacion) => {
+      const evento =
+        reservacion.evento ||
+        "Evento sin nombre";
+
+      const fecha =
+        reservacion.fechaReserva ||
+        null;
+
+      const clave =
+        `${evento}|${fecha || "sin-fecha"}`;
+
+      if (!acumulador[clave]) {
+        acumulador[clave] = {
+          evento,
+          fecha,
+          reservaciones: []
+        };
+      }
+
+      acumulador[clave].reservaciones.push(
+        reservacion
+      );
+
+      return acumulador;
+    },
+    {}
+  );
+
+  // =====================================================
+  // ORDENAR EVENTOS POR FECHA
+  // =====================================================
+
+  const eventosOrdenados =
+    Object.values(grupos).sort(
+      (a, b) => {
+
+        if (!a.fecha) {
+          return 1;
+        }
+
+        if (!b.fecha) {
+          return -1;
+        }
+
+        return a.fecha.localeCompare(
+          b.fecha
+        );
+      }
+    );
+
+  // =====================================================
+  // MOSTRAR SOLO LOS 5 EVENTOS MÁS PRÓXIMOS
+  // =====================================================
+
+  const eventosVisibles =
+    eventosOrdenados.slice(0, 5);
+
+  // =====================================================
+  // CAMBIAR ESTADO
+  // =====================================================
+
+  const cambiarEstado = async (
+    id,
+    accion
+  ) => {
+    try {
+      setProcesando(id);
+      setMensaje("");
+
+      let endpoint = "";
+
+      // =================================================
+      // ACEPTAR
+      // =================================================
+
+      if (accion === "aceptar") {
+        endpoint =
+          `${API_URL}/reservaciones/${id}/aceptar`;
+      }
+
+      // =================================================
+      // RECHAZAR
+      // =================================================
+
+      if (accion === "rechazar") {
+        endpoint =
+          `${API_URL}/reservaciones/${id}/cancelar`;
+      }
+
+      // =================================================
+      // LLEGÓ
+      // =================================================
+
+      if (accion === "llego") {
+        endpoint =
+          `${API_URL}/reservaciones/${id}/llego`;
+      }
+
+      // =================================================
+      // NO_SHOW
+      // =================================================
+
+      if (accion === "no-show") {
+        endpoint =
+          `${API_URL}/reservaciones/${id}/no-show`;
+      }
+
+      // =================================================
+      // VALIDAR ENDPOINT
+      // =================================================
+
+      if (!endpoint) {
+        throw new Error(
+          "Acción de reservación no válida."
+        );
+      }
+
+      // =================================================
+      // LLAMAR API
+      // =================================================
+
+      const respuesta = await fetch(
+        endpoint,
+        {
+          method: "PUT"
+        }
+      );
+
+      // =================================================
+      // ERROR API
+      // =================================================
+
+      if (!respuesta.ok) {
+        let mensajeError =
+          "No se pudo actualizar la reservación.";
+
+        try {
+          const texto =
+            await respuesta.text();
+
+          if (texto) {
+            mensajeError = texto;
+          }
+
+        } catch (error) {
+          console.error(
+            "Error leyendo respuesta:",
+            error
+          );
+        }
+
+        throw new Error(
+          mensajeError
+        );
+      }
+
+      // =================================================
+      // LEER RESPUESTA
+      // =================================================
+
+      const reservacionActualizada =
+        await respuesta.json();
+
+      console.log(
+        "RESERVACIÓN ACTUALIZADA:",
+        reservacionActualizada
+      );
+
+      // =================================================
+      // ACTUALIZAR PANTALLA
+      //
+      // Si queda REGISTRADA o ACEPTADA,
+      // continúa visible.
+      //
+      // Si pasa a CANCELADA, LLEGO o NO_SHOW,
+      // desaparece de esta pantalla.
+      // =================================================
+
+      setReservaciones(
+        (actuales) =>
+          actuales
+            .map(
+              (reservacion) =>
+                reservacion.id === id
+                  ? reservacionActualizada
+                  : reservacion
+            )
+            .filter(
+              (reservacion) =>
+                reservacion.estado ===
+                  "REGISTRADA" ||
+                reservacion.estado ===
+                  "ACEPTADA"
+            )
+      );
+
+    } catch (error) {
+      console.error(
+        "Error cambiando estado:",
+        error
+      );
+
+      setMensaje(
+        error.message ||
+          "No se pudo actualizar la reservación."
+      );
+
+    } finally {
+      setProcesando(null);
+    }
+  };
+
+  // =====================================================
   // CERRAR SESIÓN
   // =====================================================
 
   const cerrarSesion = () => {
-
-    sessionStorage.removeItem("sesion");
-
+    logout();
     navigate("/login");
-
-    window.location.reload();
   };
 
   // =====================================================
@@ -128,7 +336,6 @@ function ReservacionesAutorizar() {
   // =====================================================
 
   return (
-
     <div
       style={{
         minHeight: "100vh",
@@ -176,11 +383,10 @@ function ReservacionesAutorizar() {
                 marginTop: "8px"
               }}
             >
-              Reservaciones por autorizar
+              Reservaciones por evento
             </p>
 
           </div>
-
 
           <div
             style={{
@@ -193,14 +399,16 @@ function ReservacionesAutorizar() {
             <button
               type="button"
               onClick={cargarReservaciones}
+              disabled={cargando}
               style={{
                 padding: "10px 16px",
-                cursor: "pointer"
+                cursor: cargando
+                  ? "not-allowed"
+                  : "pointer"
               }}
             >
               Actualizar
             </button>
-
 
             <button
               type="button"
@@ -217,13 +425,40 @@ function ReservacionesAutorizar() {
 
         </div>
 
+        {/* =================================================
+            INFORMACIÓN DE EVENTOS
+        ================================================= */}
+
+        {!cargando &&
+          eventosOrdenados.length > 5 && (
+            <div
+              style={{
+                background: "#1c1c1c",
+                border: "1px solid #444",
+                borderRadius: "8px",
+                padding: "15px 20px",
+                marginBottom: "20px",
+                color: "#ccc"
+              }}
+            >
+              Mostrando los{" "}
+              <strong
+                style={{
+                  color: "#d4af37"
+                }}
+              >
+                5 eventos más próximos
+              </strong>
+              . Los eventos restantes permanecen
+              registrados en la base de datos.
+            </div>
+          )}
 
         {/* =================================================
             CARGANDO
         ================================================= */}
 
         {cargando && (
-
           <div
             style={{
               padding: "30px",
@@ -232,30 +467,26 @@ function ReservacionesAutorizar() {
           >
             Cargando reservaciones...
           </div>
-
         )}
-
 
         {/* =================================================
             ERROR
         ================================================= */}
 
-        {!cargando && mensaje && (
-
-          <div
-            style={{
-              background: "#3a1515",
-              border: "1px solid #a33",
-              padding: "20px",
-              borderRadius: "8px",
-              marginBottom: "20px"
-            }}
-          >
-            {mensaje}
-          </div>
-
-        )}
-
+        {!cargando &&
+          mensaje && (
+            <div
+              style={{
+                background: "#3a1515",
+                border: "1px solid #a33",
+                padding: "20px",
+                borderRadius: "8px",
+                marginBottom: "20px"
+              }}
+            >
+              {mensaje}
+            </div>
+          )}
 
         {/* =================================================
             SIN RESERVACIONES
@@ -264,7 +495,6 @@ function ReservacionesAutorizar() {
         {!cargando &&
           !mensaje &&
           reservaciones.length === 0 && (
-
             <div
               style={{
                 background: "#1c1c1c",
@@ -279,57 +509,53 @@ function ReservacionesAutorizar() {
               </h2>
 
               <p>
-                Actualmente no existen reservaciones
-                por autorizar.
+                Actualmente no existen
+                reservaciones que requieran
+                acción.
               </p>
 
             </div>
-
           )}
 
-
         {/* =================================================
-            RESERVACIONES
+            EVENTOS
         ================================================= */}
 
         {!cargando &&
-          reservaciones.length > 0 && (
-
+          eventosVisibles.length > 0 && (
             <div
               style={{
                 display: "grid",
-                gap: "20px"
+                gap: "30px"
               }}
             >
 
-              {reservaciones.map(
-                (reservacion) => (
-
+              {eventosVisibles.map(
+                (grupo) => (
                   <div
-                    key={reservacion.id}
+                    key={
+                      `${grupo.evento}-` +
+                      `${grupo.fecha}`
+                    }
                     style={{
-                      background: "#1c1c1c",
+                      background: "#181818",
                       border:
-                        "1px solid #333",
-                      borderRadius: "10px",
-                      padding: "20px"
+                        "1px solid #444",
+                      borderRadius: "12px",
+                      overflow: "hidden"
                     }}
                   >
 
                     {/* =====================================
-                        CABECERA
+                        CABECERA DEL EVENTO
                     ===================================== */}
 
                     <div
                       style={{
-                        display: "flex",
-                        justifyContent:
-                          "space-between",
-                        alignItems:
-                          "center",
-                        gap: "15px",
-                        flexWrap: "wrap",
-                        marginBottom: "20px"
+                        background: "#222",
+                        padding: "20px",
+                        borderBottom:
+                          "1px solid #444"
                       }}
                     >
 
@@ -339,197 +565,443 @@ function ReservacionesAutorizar() {
                           color: "#d4af37"
                         }}
                       >
-                        Reservación #
-                        {reservacion.id}
+                        {grupo.evento}
                       </h2>
 
-
-                      <span
+                      <p
                         style={{
-                          padding:
-                            "6px 12px",
-                          borderRadius:
-                            "20px",
-                          background:
-                            "#5a4200",
-                          color:
-                            "#ffd966",
-                          fontWeight:
-                            "bold"
+                          margin:
+                            "8px 0 0",
+                          fontSize: "16px"
                         }}
                       >
-                        {reservacion.estado}
-                      </span>
+                        Fecha:{" "}
+                        <strong>
+                          {formatearFecha(
+                            grupo.fecha
+                          )}
+                        </strong>
+                      </p>
+
+                      <p
+                        style={{
+                          margin:
+                            "5px 0 0",
+                          color: "#bbb"
+                        }}
+                      >
+                        {
+                          grupo
+                            .reservaciones
+                            .length
+                        }{" "}
+                        reservación
+                        {grupo
+                          .reservaciones
+                          .length !== 1
+                          ? "es"
+                          : ""}
+                      </p>
 
                     </div>
 
-
                     {/* =====================================
-                        DATOS
+                        RESERVACIONES DEL EVENTO
                     ===================================== */}
 
                     <div
                       style={{
                         display: "grid",
-                        gridTemplateColumns:
-                          "repeat(auto-fit, minmax(220px, 1fr))",
-                        gap: "15px"
+                        gap: "15px",
+                        padding: "20px"
                       }}
                     >
 
-                      <div>
+                      {grupo.reservaciones.map(
+                        (reservacion) => {
 
-                        <strong>
-                          Cliente
-                        </strong>
+                          const estaProcesando =
+                            procesando ===
+                            reservacion.id;
 
-                        <p>
-                          {reservacion.usuario?.nombre}{" "}
-                          {reservacion.usuario?.apellidos}
-                        </p>
+                          return (
+                            <div
+                              key={
+                                reservacion.id
+                              }
+                              style={{
+                                background:
+                                  "#1c1c1c",
+                                border:
+                                  "1px solid #333",
+                                borderRadius:
+                                  "10px",
+                                padding:
+                                  "20px"
+                              }}
+                            >
 
-                      </div>
+                              {/* =========================
+                                  CABECERA RESERVACIÓN
+                              ========================= */}
 
+                              <div
+                                style={{
+                                  display:
+                                    "flex",
+                                  justifyContent:
+                                    "space-between",
+                                  alignItems:
+                                    "center",
+                                  gap: "15px",
+                                  flexWrap:
+                                    "wrap",
+                                  marginBottom:
+                                    "20px"
+                                }}
+                              >
 
-                      <div>
+                                <h3
+                                  style={{
+                                    margin: 0,
+                                    color:
+                                      "#fff"
+                                  }}
+                                >
+                                  Reservación #
+                                  {
+                                    reservacion.id
+                                  }
+                                </h3>
 
-                        <strong>
-                          Teléfono
-                        </strong>
+                                <span
+                                  style={{
+                                    padding:
+                                      "6px 12px",
+                                    borderRadius:
+                                      "20px",
+                                    background:
+                                      reservacion.estado ===
+                                      "REGISTRADA"
+                                        ? "#5a4200"
+                                        : "#164a25",
+                                    color:
+                                      reservacion.estado ===
+                                      "REGISTRADA"
+                                        ? "#ffd966"
+                                        : "#8ff0a4",
+                                    fontWeight:
+                                      "bold"
+                                  }}
+                                >
+                                  {
+                                    reservacion.estado
+                                  }
+                                </span>
 
-                        <p>
-                          {reservacion.usuario?.telefono}
-                        </p>
+                              </div>
 
-                      </div>
+                              {/* =========================
+                                  DATOS CLIENTE
+                              ========================= */}
 
+                              <div
+                                style={{
+                                  display:
+                                    "grid",
+                                  gridTemplateColumns:
+                                    "repeat(auto-fit, minmax(220px, 1fr))",
+                                  gap: "15px"
+                                }}
+                              >
 
-                      <div>
+                                <div>
+                                  <strong>
+                                    Cliente
+                                  </strong>
 
-                        <strong>
-                          Email
-                        </strong>
+                                  <p>
+                                    {
+                                      reservacion
+                                        .usuario
+                                        ?.nombre
+                                    }{" "}
+                                    {
+                                      reservacion
+                                        .usuario
+                                        ?.apellidos
+                                    }
+                                  </p>
+                                </div>
 
-                        <p>
-                          {reservacion.usuario?.email}
-                        </p>
+                                <div>
+                                  <strong>
+                                    Teléfono
+                                  </strong>
 
-                      </div>
+                                  <p>
+                                    {
+                                      reservacion
+                                        .usuario
+                                        ?.telefono
+                                    }
+                                  </p>
+                                </div>
 
+                                <div>
+                                  <strong>
+                                    Email
+                                  </strong>
 
-                      <div>
+                                  <p>
+                                    {
+                                      reservacion
+                                        .usuario
+                                        ?.email
+                                    }
+                                  </p>
+                                </div>
 
-                        <strong>
-                          Evento
-                        </strong>
+                                <div>
+                                  <strong>
+                                    Mesas
+                                  </strong>
 
-                        <p>
-                          {reservacion.evento}
-                        </p>
+                                  <p>
+                                    {
+                                      reservacion
+                                        .numeroMesas
+                                    }
+                                  </p>
+                                </div>
 
-                      </div>
+                                <div>
+                                  <strong>
+                                    Personas
+                                  </strong>
 
+                                  <p>
+                                    {
+                                      reservacion
+                                        .personas
+                                    }
+                                  </p>
+                                </div>
 
-                      <div>
+                              </div>
 
-                        <strong>
-                          Fecha
-                        </strong>
+                              {/* =========================
+                                  ACCIONES
+                              ========================= */}
 
-                        <p>
-                          {formatearFecha(
-                            reservacion.fechaReserva
-                          )}
-                        </p>
+                              <div
+                                style={{
+                                  marginTop:
+                                    "20px",
+                                  display:
+                                    "flex",
+                                  gap: "12px",
+                                  flexWrap:
+                                    "wrap"
+                                }}
+                              >
 
-                      </div>
+                                {/* =================================
+                                    REGISTRADA
+                                ================================= */}
 
+                                {reservacion.estado ===
+                                  "REGISTRADA" && (
+                                  <>
 
-                      <div>
+                                    <button
+                                      type="button"
+                                      disabled={
+                                        estaProcesando
+                                      }
+                                      onClick={() =>
+                                        cambiarEstado(
+                                          reservacion.id,
+                                          "aceptar"
+                                        )
+                                      }
+                                      style={{
+                                        padding:
+                                          "11px 20px",
+                                        cursor:
+                                          estaProcesando
+                                            ? "not-allowed"
+                                            : "pointer",
+                                        background:
+                                          "#1d6b35",
+                                        color:
+                                          "#fff",
+                                        border:
+                                          "none",
+                                        borderRadius:
+                                          "6px",
+                                        fontWeight:
+                                          "bold",
+                                        opacity:
+                                          estaProcesando
+                                            ? 0.5
+                                            : 1
+                                      }}
+                                    >
+                                      {estaProcesando
+                                        ? "Procesando..."
+                                        : "Aceptar"}
+                                    </button>
 
-                        <strong>
-                          Mesas
-                        </strong>
+                                    <button
+                                      type="button"
+                                      disabled={
+                                        estaProcesando
+                                      }
+                                      onClick={() =>
+                                        cambiarEstado(
+                                          reservacion.id,
+                                          "rechazar"
+                                        )
+                                      }
+                                      style={{
+                                        padding:
+                                          "11px 20px",
+                                        cursor:
+                                          estaProcesando
+                                            ? "not-allowed"
+                                            : "pointer",
+                                        background:
+                                          "#8b2020",
+                                        color:
+                                          "#fff",
+                                        border:
+                                          "none",
+                                        borderRadius:
+                                          "6px",
+                                        fontWeight:
+                                          "bold",
+                                        opacity:
+                                          estaProcesando
+                                            ? 0.5
+                                            : 1
+                                      }}
+                                    >
+                                      {estaProcesando
+                                        ? "Procesando..."
+                                        : "Rechazar"}
+                                    </button>
 
-                        <p>
-                          {reservacion.numeroMesas}
-                        </p>
+                                  </>
+                                )}
 
-                      </div>
+                                {/* =================================
+                                    ACEPTADA
+                                ================================= */}
 
+                                {reservacion.estado ===
+                                  "ACEPTADA" && (
+                                  <>
 
-                      <div>
+                                    <button
+                                      type="button"
+                                      disabled={
+                                        estaProcesando
+                                      }
+                                      onClick={() =>
+                                        cambiarEstado(
+                                          reservacion.id,
+                                          "llego"
+                                        )
+                                      }
+                                      style={{
+                                        padding:
+                                          "11px 20px",
+                                        cursor:
+                                          estaProcesando
+                                            ? "not-allowed"
+                                            : "pointer",
+                                        background:
+                                          "#1d6b35",
+                                        color:
+                                          "#fff",
+                                        border:
+                                          "none",
+                                        borderRadius:
+                                          "6px",
+                                        fontWeight:
+                                          "bold",
+                                        opacity:
+                                          estaProcesando
+                                            ? 0.5
+                                            : 1
+                                      }}
+                                    >
+                                      {estaProcesando
+                                        ? "Procesando..."
+                                        : "LLEGÓ"}
+                                    </button>
 
-                        <strong>
-                          Personas
-                        </strong>
+                                    <button
+                                      type="button"
+                                      disabled={
+                                        estaProcesando
+                                      }
+                                      onClick={() =>
+                                        cambiarEstado(
+                                          reservacion.id,
+                                          "no-show"
+                                        )
+                                      }
+                                      style={{
+                                        padding:
+                                          "11px 20px",
+                                        cursor:
+                                          estaProcesando
+                                            ? "not-allowed"
+                                            : "pointer",
+                                        background:
+                                          "#8b2020",
+                                        color:
+                                          "#fff",
+                                        border:
+                                          "none",
+                                        borderRadius:
+                                          "6px",
+                                        fontWeight:
+                                          "bold",
+                                        opacity:
+                                          estaProcesando
+                                            ? 0.5
+                                            : 1
+                                      }}
+                                    >
+                                      {estaProcesando
+                                        ? "Procesando..."
+                                        : "NO_SHOW"}
+                                    </button>
 
-                        <p>
-                          {reservacion.personas}
-                        </p>
+                                  </>
+                                )}
 
-                      </div>
+                              </div>
 
-                    </div>
-
-
-                    {/* =====================================
-                        ACCIONES
-                    ===================================== */}
-
-                    <div
-                      style={{
-                        marginTop: "20px",
-                        display: "flex",
-                        gap: "12px",
-                        flexWrap: "wrap"
-                      }}
-                    >
-
-                      <button
-                        type="button"
-                        disabled
-                        style={{
-                          padding:
-                            "10px 18px",
-                          cursor:
-                            "not-allowed",
-                          opacity: 0.5
-                        }}
-                      >
-                        Aceptar
-                      </button>
-
-
-                      <button
-                        type="button"
-                        disabled
-                        style={{
-                          padding:
-                            "10px 18px",
-                          cursor:
-                            "not-allowed",
-                          opacity: 0.5
-                        }}
-                      >
-                        Rechazar
-                      </button>
+                            </div>
+                          );
+                        }
+                      )}
 
                     </div>
 
                   </div>
-
                 )
               )}
 
             </div>
-
           )}
 
       </div>
-
     </div>
-
   );
 }
 
