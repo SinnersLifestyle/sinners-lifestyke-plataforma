@@ -10,9 +10,9 @@ import Footer from "./components/Footer";
 import Login from "./pages/Login";
 import Registro from "./pages/Registro";
 import Reservaciones from "./pages/Reservaciones";
+import ReservacionesAutorizar from "./pages/ReservacionesAutorizar";
 
 import "./App.css";
-
 
 function Home() {
 
@@ -20,18 +20,21 @@ function Home() {
 
     <>
       <Header />
+
       <Hero />
+
       <Events />
+
       <Gallery />
+
       <Promotions />
+
       <Footer />
     </>
 
   );
 
 }
-
-
 
 function App() {
 
@@ -41,33 +44,30 @@ function App() {
 
       <Routes>
 
-
         <Route
           path="/"
           element={<Home />}
         />
-
-
 
         <Route
           path="/login"
           element={<Login />}
         />
 
-
-
         <Route
           path="/registro"
           element={<Registro />}
         />
-
-
 
         <Route
           path="/reservaciones"
           element={<Reservaciones />}
         />
 
+        <Route
+          path="/reservaciones-autorizar"
+          element={<ReservacionesAutorizar />}
+        />
 
       </Routes>
 
@@ -76,6 +76,5 @@ function App() {
   );
 
 }
-
 
 export default App;

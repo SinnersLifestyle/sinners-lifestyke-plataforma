@@ -153,7 +153,7 @@ function Reservaciones() {
 
     // ===================================================
     // CONVERTIR FECHA
-    // =====================================================
+    // ===================================================
 
     const fechaConvertida =
       convertirFecha(fechaSeleccionada);
@@ -168,7 +168,7 @@ function Reservaciones() {
 
     // ===================================================
     // DATOS PARA API
-    // ===================================================
+    // =====================================================
 
     console.log(
       "DATOS QUE SE ENVIARÁN A LA API:",
@@ -242,7 +242,7 @@ function Reservaciones() {
       );
 
       // =================================================
-      // GUARDAR RESERVACIÓN EN ESTADO
+      // GUARDAR RESERVACIÓN
       // =================================================
 
       setReservacionCreada(reservacion);
@@ -322,25 +322,60 @@ function Reservaciones() {
     const numeroSinners =
       "525571110679";
 
+    const textoCodificado =
+      encodeURIComponent(textoWhatsApp);
+
     // =================================================
-    // URL OFICIAL PARA ABRIR WHATSAPP
+    // WHATSAPP
     // =================================================
 
-    const urlWhatsApp =
-      `https://wa.me/${numeroSinners}?text=${encodeURIComponent(
-        textoWhatsApp
-      )}`;
+    const esCelular =
+      /Android|iPhone|iPad|iPod|Windows Phone/i.test(
+        navigator.userAgent
+      );
+
+    const urlAplicacion =
+      `whatsapp://send?phone=${numeroSinners}&text=${textoCodificado}`;
+
+    const urlWeb =
+      `https://wa.me/${numeroSinners}?text=${textoCodificado}`;
 
     console.log(
-      "ABRIENDO WHATSAPP:",
-      urlWhatsApp
+      "NÚMERO DE RESERVACIÓN:",
+      numeroReservacion
+    );
+
+    console.log(
+      "MENSAJE WHATSAPP:",
+      textoWhatsApp
     );
 
     // =================================================
-    // ABRIR WHATSAPP
+    // CELULAR
+    // INTENTAR ABRIR LA APP DE WHATSAPP
     // =================================================
 
-    window.location.href = urlWhatsApp;
+    if (esCelular) {
+      window.location.href = urlAplicacion;
+
+      // Si el teléfono no tiene WhatsApp instalado,
+      // intentamos abrir WhatsApp mediante navegador.
+      setTimeout(() => {
+        window.location.href = urlWeb;
+      }, 1200);
+
+      return;
+    }
+
+    // =================================================
+    // COMPUTADORA
+    // ABRIR WHATSAPP WEB
+    // =================================================
+
+    window.open(
+      urlWeb,
+      "_blank"
+    );
   };
 
   return (
@@ -411,7 +446,6 @@ function Reservaciones() {
           <div className="cliente-datos">
 
             <div>
-
               <span>
                 Nombre
               </span>
@@ -420,11 +454,9 @@ function Reservaciones() {
                 {usuario?.nombre}{" "}
                 {usuario?.apellidos}
               </strong>
-
             </div>
 
             <div>
-
               <span>
                 Email
               </span>
@@ -432,11 +464,9 @@ function Reservaciones() {
               <strong>
                 {usuario?.email}
               </strong>
-
             </div>
 
             <div>
-
               <span>
                 Teléfono
               </span>
@@ -444,7 +474,6 @@ function Reservaciones() {
               <strong>
                 {usuario?.telefono}
               </strong>
-
             </div>
 
           </div>
@@ -609,7 +638,6 @@ function Reservaciones() {
                 <strong>
                   11:30 PM.
                 </strong>
-
               </p>
 
               <p>
@@ -619,7 +647,6 @@ function Reservaciones() {
                 <strong>
                   3 personas.
                 </strong>
-
               </p>
 
               <p>
@@ -630,7 +657,6 @@ function Reservaciones() {
                 <strong>
                   55 7111 0679
                 </strong>.
-
               </p>
 
             </div>
@@ -681,6 +707,8 @@ function Reservaciones() {
                 </strong>
               </div>
 
+              {/* ESTADO */}
+
               <div>
                 <span>
                   Estado
@@ -690,6 +718,8 @@ function Reservaciones() {
                   {reservacionCreada?.estado || "REGISTRADA"}
                 </strong>
               </div>
+
+              {/* CLIENTE */}
 
               <div>
                 <span>
@@ -702,6 +732,8 @@ function Reservaciones() {
                 </strong>
               </div>
 
+              {/* TELÉFONO */}
+
               <div>
                 <span>
                   Teléfono
@@ -711,6 +743,8 @@ function Reservaciones() {
                   {usuario?.telefono}
                 </strong>
               </div>
+
+              {/* EVENTO */}
 
               <div>
                 <span>
@@ -722,6 +756,8 @@ function Reservaciones() {
                 </strong>
               </div>
 
+              {/* FECHA */}
+
               <div>
                 <span>
                   Fecha
@@ -732,6 +768,8 @@ function Reservaciones() {
                 </strong>
               </div>
 
+              {/* MESAS */}
+
               <div>
                 <span>
                   Mesas
@@ -741,6 +779,8 @@ function Reservaciones() {
                   {form.numeroMesas}
                 </strong>
               </div>
+
+              {/* PERSONAS */}
 
               <div>
                 <span>
@@ -763,6 +803,14 @@ function Reservaciones() {
               <p>
                 Tu reservación ya fue registrada
                 en el sistema de SINNERS.
+              </p>
+
+              <p>
+                Tu número de reservación es{" "}
+
+                <strong>
+                  #{reservacionCreada?.id}
+                </strong>.
               </p>
 
               <p>
@@ -853,9 +901,12 @@ function convertirFecha(fecha) {
   }
 
   const dia = partes[0];
-  const mesNombre = partes[1];
 
-  const mes = meses[mesNombre];
+  const mesNombre =
+    partes[1];
+
+  const mes =
+    meses[mesNombre];
 
   if (!mes) {
     return null;
